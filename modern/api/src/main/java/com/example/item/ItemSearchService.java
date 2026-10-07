@@ -28,7 +28,11 @@ public class ItemSearchService {
     private static final Pattern PHP_NUMERIC_PREFIX =
         Pattern.compile("^[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?");
 
-    /** 정규화 도구(JavaScript {@code \s})가 공백으로 보는 문자. */
+    /**
+     * 레거시 표를 정규화한 표시값을 반환하는 이번 API의 응답 계약이다.
+     * HTML은 characterization/lib/normalize.mjs의 text()에서 공백을 접지만 JSON 행은 그대로 비교된다.
+     * 원문을 반환하는 범용 API로 바꾸지 않는다. 근거: docs/item-bank/MIGRATION-PLAN.md §5.
+     */
     private static final Pattern DISPLAY_WHITESPACE = Pattern.compile(
         "[\\t\\n\\u000B\\f\\r \\u00A0\\u1680\\u2000-\\u200A\\u2028\\u2029\\u202F\\u205F\\u3000\\uFEFF]+");
 
