@@ -69,6 +69,31 @@ class ItemSearchServiceTest {
         assertThat(criteriaFor(request(null, null, null, null, null, null, page)).offset()).isEqualTo(expectedOffset);
     }
 
+    @Test
+    @DisplayName("페이지 끝의 개행 1개는 허용해 숫자로 읽는다 (PHP $ 동작)")
+    void pageAllowsSingleTrailingNewline() {
+        assertThat(criteriaFor(request(null, null, null, null, null, null, "2\n")).offset()).isEqualTo(20);
+    }
+
+    @Test
+    @DisplayName("페이지 끝의 개행 2개는 거부해 1페이지로 본다")
+    void pageRejectsTwoTrailingNewlines() {
+        assertThat(criteriaFor(request(null, null, null, null, null, null, "2\n\n")).offset()).isZero();
+    }
+
+    @Test
+    @DisplayName("페이지의 선행 0은 무시하고 숫자로 읽는다")
+    void pageIgnoresLeadingZeros() {
+        assertThat(criteriaFor(request(null, null, null, null, null, null, "0002")).offset()).isEqualTo(20);
+    }
+
+    @Test
+    @DisplayName("아주 긴 숫자 페이지는 오버플로 없이 999 로 맞춘다")
+    void pageClampsVeryLongNumber() {
+        assertThat(criteriaFor(request(null, null, null, null, null, null, "9".repeat(100))).offset())
+            .isEqualTo(19960);
+    }
+
     @ParameterizedTest(name = "sort=[{0}] dir=[{1}] → {2}")
     @CsvSource({
         "id, '', ID_ASC",
