@@ -1,0 +1,11 @@
+# DB_DSN 값은 Claude Code를 실행하는 프로세스의 환경 변수에서 받습니다.
+[[sources]]
+id = "default"
+dsn = "${DB_DSN}"
+
+# 읽기 전용 계정과 서버 설정을 함께 사용합니다.
+[[tools]]
+name = "execute_sql"
+source = "default"
+readonly = true
+max_rows = 1000

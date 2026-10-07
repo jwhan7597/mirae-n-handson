@@ -4,6 +4,8 @@
 // 로그는 console.error 만 쓴다(stdout 으로 찍는 로그 함수는 절대 쓰지 않는다).
 import { McpServer } from '@modelcontextprotocol/server';
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio';
+import * as z from 'zod/v4';
+import { searchItems } from './itemApi.js';
 
 const server = new McpServer({ name: 'item-bank', version: '1.0.0' });
 
@@ -18,15 +20,25 @@ server.registerTool(
   })
 );
 
-// ================================================================
-// 여기에 도구를 등록합니다
-//
-//   server.registerTool('도구_이름', { description, inputSchema }, handler)
-//
-// - inputSchema 는 z.object({...}) 전체 스키마로 넘긴다 (import * as z from 'zod/v4')
-// - 감쌀 API 는 ./itemApi.js 에 있다 (ESM 이라 확장자를 .js 로 적는다)
-// - import 문도 이 자리에 함께 붙여 넣어도 된다
-// ================================================================
+server.registerTool(
+  'search_items',
+  {
+    description: '문항 내용이나 태그를 확인해야 할 때 키워드 · 단원 · 난이도로 문항 은행을 검색한다.',
+    inputSchema: z.object({
+      keyword: z.string().describe('문항 본문 또는 태그에서 검색할 키워드'),
+      unit: z.string().optional().describe('단원 코드 또는 단원 이름 일부'),
+      difficulty: z.enum(['하', '중', '상']).optional().describe('난이도: 하 · 중 · 상'),
+      limit: z.number().int().min(1).max(20).default(5).describe('최대 검색 건수: 1~20, 기본 5')
+    })
+  },
+  async ({ keyword, unit, difficulty, limit }) => {
+    const items = await searchItems({ keyword, unit, difficulty, limit });
+    const text = items.length > 0
+      ? JSON.stringify(items, null, 2)
+      : `검색 결과 없음: ${JSON.stringify({ keyword, unit, difficulty, limit })}`;
+    return { content: [{ type: 'text', text }] };
+  }
+);
 
 async function main() {
   const transport = new StdioServerTransport();
